@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, type Profile } from 'passport-google-oauth20';
 import { UserService } from '../user/user.service';
-import type { User } from '../../generated/prisma';
+import type { User } from '../generated/prisma';
 
 const strategyOptions: any = {
   clientID: process.env.GOOGLE_CLIENT_ID!,
@@ -14,9 +14,6 @@ const strategyOptions: any = {
     'https://www.googleapis.com/auth/drive',
     'https://www.googleapis.com/auth/documents',
   ],
-  // Force Google to always return a refresh_token (required for Drive access)
-  accessType: 'offline',
-  prompt: 'consent',
 };
 
 @Injectable()
@@ -25,6 +22,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
   constructor(private readonly userService: UserService) {
     super(strategyOptions);
+    this.validate = this.validate.bind(this);
+    this.log.debug(
+      `Constructor instantiated. userService defined: ${!!this.userService}`,
+    );
   }
 
   async validate(
@@ -44,6 +45,15 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     this.log.debug(
       `validate called — id=${profile.id} email=${json?.email ?? '(none)'}`,
     );
+
+    this.log.debug(`accessToken: ${accessToken}`);
+    this.log.debug(`refreshToken: ${refreshToken}`);
+    this.log.debug(`profile: ${JSON.stringify(profile)}`);
+
+    // DEBUGGING 'this' context and dependencies:
+    this.log.debug(`Is 'this' defined? ${!!this}`);
+    this.log.debug(`Is 'this.userService' defined? ${!!this?.userService}`);
+    this.log.debug(`Constructors name for 'this': ${this?.constructor?.name}`);
 
     try {
       const email = json.email ?? profile.emails?.[0]?.value ?? '';
@@ -72,7 +82,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       this.log.debug(`upsert succeeded — userId=${user.id}`);
       return user;
     } catch (err) {
-      this.log.error('upsertFromGoogle failed', err);
+      const e = err;
+      const detail = `message=${String(e?.message)} code=${String(e?.code)} meta=${JSON.stringify(e?.meta)}`;
+      process.stdout.write(
+        `\n=== UPSERT ERROR ===\n${detail}\n${String(e?.stack)}\n`,
+      );
+      this.log.error(`upsertFromGoogle failed — ${detail}`);
       throw err;
     }
   }

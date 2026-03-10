@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
-import type { User } from '../../generated/prisma';
+import type { User } from '../generated/prisma';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
 import { GoogleAuthGuard, JwtAuthGuard } from './auth.guard';

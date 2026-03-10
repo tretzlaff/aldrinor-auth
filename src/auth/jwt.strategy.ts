@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UserService } from '../user/user.service';
-import type { User } from '../../generated/prisma';
+import type { User } from '../generated/prisma';
 
 export interface JwtPayload {
   sub: string; // user id as string (BigInt serialized)

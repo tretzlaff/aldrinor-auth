@@ -10,7 +10,7 @@
  */
 
 import 'dotenv/config';
-import { PrismaClient, type Prisma } from '../generated/prisma';
+import { PrismaClient, type Prisma } from './generated/prisma';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 
