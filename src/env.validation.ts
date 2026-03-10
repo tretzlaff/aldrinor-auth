@@ -8,10 +8,15 @@ export const envSchema = z.object({
   LOG_LEVEL: z.string().default('info'),
   DATABASE_URL: z.string(),
   GOOGLE_CLIENT_ID: z.string(),
-  GOOGLE_CLIENT_SECRET: z.string(),
+  GOOGLE_CLIENT_SECRET: z.string().min(8),
   GOOGLE_CALLBACK_URL: z.string().url(),
   JWT_SECRET: z.string().min(16),
   JWT_EXPIRY: z.string().default('15m'),
+  CORS_ORIGINS: z
+    .string()
+    .default('http://localhost:3002')
+    .transform((val) => val.split(',')),
+  UI_BASE_URL: z.string().url().default('http://localhost:3002'),
 });
 
 export type Env = z.infer<typeof envSchema>;

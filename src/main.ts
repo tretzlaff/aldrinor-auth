@@ -18,7 +18,7 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.enableCors({
-    origin: ['http://localhost:3002', 'https://localhost:3002'],
+    origin: env.CORS_ORIGINS,
   });
   app.useLogger(app.get(Logger));
 
