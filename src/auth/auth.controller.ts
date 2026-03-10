@@ -47,9 +47,9 @@ export class AuthController {
   googleCallback(@Req() req: Request, @Res() res: Response): void {
     const user = req.user as User;
     const token = this.authService.issueJwt(user);
-    const uiBase = (
-      this.configService.get<string>('UI_BASE_URL') ?? 'http://localhost:3002'
-    ).replace(/\/$/, '');
+    const uiBase = this.configService
+      .get<string>('UI_BASE_URL')!
+      .replace(/\/$/, '');
     res.redirect(`${uiBase}/auth/callback?token=${token}`);
   }
 

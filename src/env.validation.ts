@@ -15,7 +15,7 @@ export const envSchema = z.object({
   CORS_ORIGINS: z
     .string()
     .default('http://localhost:3002')
-    .transform((val) => val.split(',')),
+    .transform((val) => val.split(',').map((s) => s.trim())),
   UI_BASE_URL: z.string().url().default('http://localhost:3002'),
 });
 
