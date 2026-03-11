@@ -30,4 +30,5 @@ dist/
 .vscode/
 .idea/
 
-
+# Local Certs
+*.pem

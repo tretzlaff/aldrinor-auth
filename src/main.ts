@@ -8,6 +8,8 @@ import 'dotenv/config';
 
 import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
+import * as fs from 'fs';
+import * as path from 'path';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
@@ -17,7 +19,15 @@ import { GlobalExceptionFilter } from './common/global-exception.filter';
 async function bootstrap() {
   const env = validateEnv();
 
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const httpsOptions = {
+    key: fs.readFileSync(path.join(process.cwd(), 'localhost-key.pem')),
+    cert: fs.readFileSync(path.join(process.cwd(), 'localhost.pem')),
+  };
+
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+    httpsOptions,
+  });
   app.enableCors({
     origin: env.CORS_ORIGINS,
     credentials: true,
