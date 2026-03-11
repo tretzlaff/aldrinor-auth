@@ -8,6 +8,7 @@ import {
   HttpCode,
   HttpStatus,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
@@ -45,6 +46,20 @@ export class AuthController {
   googleCallback(@Req() req: Request, @Res() res: Response): void {
     const user = req.user as User;
     const token = this.authService.issueJwt(user);
+
+    const rememberMe = req.cookies?.rememberMe === 'true';
+    if (rememberMe) {
+      const refreshToken = this.authService.issueRefreshToken(user);
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      });
+      res.clearCookie('rememberMe', { path: '/' });
+    }
+
     const uiBase = (process.env.UI_BASE_URL ?? 'http://localhost:3002').replace(
       /\/$/,
       '',
@@ -98,12 +113,41 @@ export class AuthController {
   }
 
   /**
+   * Refresh access token using HttpOnly refresh token cookie
+   */
+  @ApiOperation({ summary: 'Refresh access token using HttpOnly cookie' })
+  @Post('refresh')
+  async refresh(@Req() req: Request) {
+    const refreshToken = req.cookies?.refreshToken as string | undefined;
+    if (!refreshToken) {
+      throw new UnauthorizedException('No refresh token provided');
+    }
+
+    try {
+      const payload = this.authService.verifyToken(refreshToken);
+      if (payload.type !== 'refresh') {
+        throw new UnauthorizedException('Invalid token type');
+      }
+
+      const user = await this.userService.findById(BigInt(payload.sub));
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      const accessToken = this.authService.issueJwt(user);
+      return { accessToken };
+    } catch {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+  }
+
+  /**
    * Logout — client drops the token; this is a convenience no-op.
    */
-  @ApiOperation({ summary: 'Logout (client should discard JWT)' })
+  @ApiOperation({ summary: 'Logout (clears refresh token cookie)' })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Post('logout')
-  logout(): void {
-    // JWT is stateless — client simply discards the token.
+  logout(@Res({ passthrough: true }) res: Response): void {
+    res.clearCookie('refreshToken', { path: '/' });
   }
 }

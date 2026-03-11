@@ -14,4 +14,17 @@ export class AuthService {
     };
     return this.jwtService.sign(payload);
   }
+
+  issueRefreshToken(user: User): string {
+    const payload: JwtPayload = {
+      sub: user.id.toString(),
+      email: user.email,
+      type: 'refresh',
+    };
+    return this.jwtService.sign(payload, { expiresIn: '30d' });
+  }
+
+  verifyToken(token: string): JwtPayload {
+    return this.jwtService.verify<JwtPayload>(token);
+  }
 }

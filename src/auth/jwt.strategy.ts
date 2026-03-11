@@ -7,6 +7,7 @@ import type { User } from '../generated/prisma';
 export interface JwtPayload {
   sub: string; // user id as string (BigInt serialized)
   email: string;
+  type?: 'refresh';
 }
 
 @Injectable()
@@ -20,6 +21,11 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: JwtPayload): Promise<User> {
+    if (payload.type === 'refresh') {
+      throw new UnauthorizedException(
+        'Invalid token type: refresh token cannot be used for API access',
+      );
+    }
     const user = await this.userService.findById(BigInt(payload.sub));
     if (!user) {
       throw new UnauthorizedException('User not found');
