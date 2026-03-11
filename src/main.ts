@@ -9,6 +9,7 @@ import 'dotenv/config';
 import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { validateEnv } from './env.validation';
 import { GlobalExceptionFilter } from './common/global-exception.filter';
@@ -19,7 +20,9 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.enableCors({
     origin: ['http://localhost:3002', 'https://localhost:3002'],
+    credentials: true,
   });
+  app.use(cookieParser());
   app.useLogger(app.get(Logger));
 
   const { httpAdapter } = app.get(HttpAdapterHost);

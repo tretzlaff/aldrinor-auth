@@ -1,14 +1,24 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { ExecutionContext, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import type { Request } from 'express';
 
 @Injectable()
 export class GoogleAuthGuard extends AuthGuard('google') {
   private readonly logger = new Logger(GoogleAuthGuard.name);
 
-  getAuthenticateOptions() {
+  getAuthenticateOptions(context: ExecutionContext) {
+    const req = context.switchToHttp().getRequest<Request>();
+    const isRefresh = req.path.includes('refresh-google');
+
+    if (isRefresh) {
+      return {
+        accessType: 'offline',
+        prompt: 'consent',
+      };
+    }
+
     return {
       accessType: 'offline',
-      prompt: 'consent',
     };
   }
 
