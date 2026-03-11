@@ -14,9 +14,9 @@ export const envSchema = z.object({
   JWT_EXPIRY: z.string().default('15m'),
   CORS_ORIGINS: z
     .string()
-    .default('http://localhost:3002')
+    .default('https://localhost:3002')
     .transform((val) => val.split(',').map((s) => s.trim())),
-  UI_BASE_URL: z.string().url().default('http://localhost:3002'),
+  UI_BASE_URL: z.string().url().default('https://localhost:3002'),
 });
 
 export type Env = z.infer<typeof envSchema>;
